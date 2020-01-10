@@ -15,7 +15,7 @@ end
 ::gethentai::
 
 if Network.isWifiEnabled() then
-	if not img == nil then
+	if img ~= nil then
 		Graphics.freeImage(img)
 		img = nil
 	end

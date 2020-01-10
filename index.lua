@@ -5,7 +5,7 @@ h,m,s = System.getTime()
 math.randomseed(s)
 
 if Network.isWifiEnabled() then
-	Network.downloadFile("https://konachan.com/post.json?limit=250&tags=+-furry%20order:score%20rating:explict", "ux0:/data/post.json")
+	Network.downloadFile("https://konachan.com/post.json?limit=250&tags=-pool:309+order:score+rating:explict", "ux0:/data/post.json")
 	file = System.openFile("ux0:/data/post.json", FREAD)
 	size = System.sizeFile(file)
 	jsonEncoded = System.readFile(file, size)
@@ -32,7 +32,7 @@ if Network.isWifiEnabled() then
 end
 
 while true do
-	
+
 	Graphics.initBlend()
 	Screen.clear()
 	if not Network.isWifiEnabled() then
@@ -50,9 +50,9 @@ while true do
 	Graphics.termBlend()
 	Screen.flip()
 	Screen.waitVblankStart()
-	
+
 	if Controls.check(Controls.read(), SCE_CTRL_CROSS) then
 		goto gethentai
 	end
-	
+
 end

@@ -21,5 +21,3 @@ Uses [Konachan](http://konachan.com) as a source.
 **Left/Square** - Decrease timer duration (down to 5 seconds)
 
 **Down/X** - Next image
-
-**Select** - Update JSON File

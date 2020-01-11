@@ -10,9 +10,13 @@ Source updated from the original with extra features. Don't know what happened t
 
 ## Controls
 L/R Triggers - Save Current Image (By ID)
+
 Up/Triangle - Auto-Next Image Timer Toggle/Reset
+
 Right/Circle - Increase Timer Duration (Up to 60 Seconds)
+
 Left/Square - Decrease Timer Duration (Down to 5 Seconds)
+
 Down/X - Next Image
 
 Select - Update JSON File

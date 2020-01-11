@@ -1,4 +1,4 @@
-# Random-Hentai
+# Random Hentai
 A simple PS Vita homebrew that returns a random hentai picture from [Konachan](http://konachan.com).
 
 That's really it. Do I need to say any more?

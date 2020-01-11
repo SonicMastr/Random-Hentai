@@ -23,7 +23,6 @@ Timer.pause(tmr2)			-- Pause timer at 0
 local buttonDown = false	-- Ensures no input lag and no unpredicted calls to functions every loop
 local menu = false			-- If menu is open
 local jsonValid = true		-- Valid JSON Response (Default True)
-local size = 0				-- Current image's file size
 
 -- Functions
 
@@ -73,7 +72,7 @@ function saveImage()
 		return id, "Image already saved", 0
 	elseif img ~= nil then
 		local new = System.openFile("ux0:/data/randomhentai/saved/" .. currentId .. ".jpg", FCREATE)
-		System.writeFile(new, image, size)		-- Image data and Size Loaded in getHentai()
+		System.writeFile(new, image, size2)		-- Image data and Size Loaded in getHentai()
 		System.closeFile(new)
 		return id, "Saved Image as " .. currentId .. ".jpg", 1
 	else	
@@ -86,8 +85,8 @@ function getHentai()
 	if Network.isWifiEnabled() then
 		Network.downloadFile("http://konachan.com/post.json?limit=1&tags=+uncensored+-pool:309+order:random+rating:explict", "ux0:/data/randomhentai/post.json")
 		local file1 = System.openFile("ux0:/data/randomhentai/post.json", FREAD)
-		local size = System.sizeFile(file1)
-		local jsonEncoded = System.readFile(file1, size)					-- Encoded JSON file data
+		local size1 = System.sizeFile(file1)
+		local jsonEncoded = System.readFile(file1, size1)					-- Encoded JSON file data
 		local pcallStat, jsonDecoded = pcall(json.decode, jsonEncoded)		-- Decoded JSON to table
 		System.closeFile(file1)
 		System.deleteFile("ux0:/data/randomhentai/post.json")
@@ -109,12 +108,12 @@ function getHentai()
 		currentId = jsonDecoded[1]["id"]
 		Network.downloadFile(url, "ux0:/data/randomhentai/randomhentai.jpg")
 		local file2 = System.openFile("ux0:/data/randomhentai/randomhentai.jpg", FREAD)
-		size = System.sizeFile(file2)
-		if size == 0 then
+		size2 = System.sizeFile(file2)
+		if size2 == 0 then
 			System.closeFile(file2)
 			goto gethentai
 		end
-		image = System.readFile(file2, size)
+		image = System.readFile(file2, size2)
 		System.closeFile(file2)
 		img = Graphics.loadImage("ux0:/data/randomhentai/randomhentai.jpg")
 		System.deleteFile("ux0:/data/randomhentai/randomhentai.jpg")
@@ -151,30 +150,32 @@ while true do
 	local delaySec = 4000					            -- Value used for the delay timer
 
 	-- Controls
-	if Controls.check(pad, SCE_CTRL_CROSS) or Controls.check(pad, SCE_CTRL_DOWN) or (autoNext == 1 and time > 0) then
-		getHentai()
-	elseif Controls.check(pad, SCE_CTRL_CIRCLE) or Controls.check(pad, SCE_CTRL_RIGHT) then
-		if not buttonDown then
-			response = timerIncrease()
+	if jsonValid and Network.isWifiEnabled() and img ~= nil then
+		if Controls.check(pad, SCE_CTRL_CROSS) or Controls.check(pad, SCE_CTRL_DOWN) or (autoNext == 1 and time > 0) then
+			getHentai()
+		elseif Controls.check(pad, SCE_CTRL_CIRCLE) or Controls.check(pad, SCE_CTRL_RIGHT) then
+			if not buttonDown then
+				response = timerIncrease()
+			end
+			buttonDown = true
+		elseif Controls.check(pad, SCE_CTRL_SQUARE) or Controls.check(pad, SCE_CTRL_LEFT) then
+			if not buttonDown then
+				response = timerDecrease()
+			end
+			buttonDown = true
+		elseif (Controls.check(pad, SCE_CTRL_TRIANGLE) or Controls.check(pad, SCE_CTRL_UP)) then
+			if not buttonDown then
+				response = toggleAutoNext()
+			end
+			buttonDown = true
+		elseif (Controls.check(pad, SCE_CTRL_LTRIGGER) or Controls.check(pad, SCE_CTRL_RTRIGGER)) then
+			if not buttonDown then
+				response, message, status = saveImage()
+			end
+			buttonDown = true
+		else
+			buttonDown = false
 		end
-		buttonDown = true
-	elseif Controls.check(pad, SCE_CTRL_SQUARE) or Controls.check(pad, SCE_CTRL_LEFT) then
-		if not buttonDown then
-			response = timerDecrease()
-		end
-		buttonDown = true
-	elseif (Controls.check(pad, SCE_CTRL_TRIANGLE) or Controls.check(pad, SCE_CTRL_UP)) then
-		if not buttonDown then
-			response = toggleAutoNext()
-		end
-		buttonDown = true
-	elseif (Controls.check(pad, SCE_CTRL_LTRIGGER) or Controls.check(pad, SCE_CTRL_RTRIGGER)) then
-		if not buttonDown then
-			response, message, status = saveImage()
-		end
-		buttonDown = true
-	else
-		buttonDown = false
 	end
 
 	-- "Menu" delay

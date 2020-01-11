@@ -55,7 +55,7 @@ function toggleAutoNext()
 			if not Timer.isPlaying(tmr) then
 				Timer.resume(tmr)
 			end
-			Timer.setTime(tmr, seconds * 1000) -- Set time in milliseconds
+			Timer.setTime(tmr, seconds * 1000)	-- Set time in milliseconds
 			autoNext = 1
 		else
 			if Timer.isPlaying(tmr) then
@@ -73,7 +73,7 @@ function saveImage()
 		return id, "Image already saved", 0
 	elseif img ~= nil then
 		local new = System.openFile("ux0:/data/randomhentai/saved/" .. currentId .. ".jpg", FCREATE)
-		System.writeFile(new, image, size)	-- Image data and Size Loaded in getHentai()
+		System.writeFile(new, image, size)		-- Image data and Size Loaded in getHentai()
 		System.closeFile(new)
 		return id, "Saved Image as " .. currentId .. ".jpg", 1
 	else	

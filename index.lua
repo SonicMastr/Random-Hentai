@@ -1,14 +1,12 @@
+pcall(Network.term)
 -- Initialize network
 Network.init()
 
 -- Load JSON parser
-local json = dofile("ux0:/app/RAND00001/deps/lua/json.lua")
+local json = dofile("app0:/deps/lua/json.lua")
 -- Load font and set font size
-local fnt0 = Font.load("ux0:/app/RAND00001/deps/font/mvboli.ttf")
+local fnt0 = Font.load("app0:/deps/font/mvboli.ttf")
 Font.setPixelSizes(fnt0, 40)
--- Set Math.random seed
-local h,m,s = System.getTime()
-math.randomseed((h * m * s) + h + m + s)
 -- Define colors
 local white, translucentBlack = Color.new(255,255,255), Color.new(0,0,0,160)
 -- Init values
@@ -24,6 +22,8 @@ local tmr2 = Timer.new()	-- Set timer for delays in main loop
 Timer.pause(tmr2)			-- Pause timer at 0
 local buttonDown = false	-- Ensures no input lag and no unpredicted calls to functions every loop
 local menu = false			-- If menu is open
+local jsonValid = true		-- Valid JSON Response (Default True)
+local size = 0				-- Current image's file size
 
 -- Functions
 
@@ -80,42 +80,42 @@ function saveImage()
 		return id, "Failed to save", 2
 	end
 end
--- Updates JSON file
-function updateJson()
-	local id = 5
-	if Timer.isPlaying(tmr) then
-		Timer.pause(tmr)
-	end
-	if Network.isWifiEnabled() then
-		Network.downloadFile("http://konachan.com/post.json?limit=1000&tags=-pool:309+order:score+rating:explict", "ux0:/data/randomhentai/post.json")
-		return id, "Updated JSON"
-	end
-	return id, "Failed"
-end
 -- Gets and loads pictures from decoded JSON
 function getHentai()
 	::gethentai::
 	if Network.isWifiEnabled() then
+		Network.downloadFile("http://konachan.com/post.json?limit=1&tags=+uncensored+-pool:309+order:random+rating:explict", "ux0:/data/randomhentai/post.json")
+		local file1 = System.openFile("ux0:/data/randomhentai/post.json", FREAD)
+		local size = System.sizeFile(file1)
+		local jsonEncoded = System.readFile(file1, size)					-- Encoded JSON file data
+		local pcallStat, jsonDecoded = pcall(json.decode, jsonEncoded)		-- Decoded JSON to table
+		System.closeFile(file1)
+		System.deleteFile("ux0:/data/randomhentai/post.json")
+		if not pcallStat then
+			jsonValid = pcallStat
+			return
+		end
+		jsonValid = pcallStat
 		if img ~= nil then
 			Graphics.freeImage(img)
 			img = nil
 		end
 		rand = math.random(#jsonDecoded)
-		url = jsonDecoded[rand]["sample_url"]
+		url = jsonDecoded[1]["sample_url"]
 		fileExt = string.lower(string.sub(url, -4, -1))
 		if fileExt ~= "jpeg" and fileExt ~= ".jpg" then
 			goto gethentai
 		end
-		currentId = jsonDecoded[rand]["id"]
+		currentId = jsonDecoded[1]["id"]
 		Network.downloadFile(url, "ux0:/data/randomhentai/randomhentai.jpg")
-		local file = System.openFile("ux0:/data/randomhentai/randomhentai.jpg", FREAD)
-		size = System.sizeFile(file)
+		local file2 = System.openFile("ux0:/data/randomhentai/randomhentai.jpg", FREAD)
+		size = System.sizeFile(file2)
 		if size == 0 then
-			System.closeFile(file)
+			System.closeFile(file2)
 			goto gethentai
 		end
-		image = System.readFile(file, size)
-		System.closeFile(file)
+		image = System.readFile(file2, size)
+		System.closeFile(file2)
 		img = Graphics.loadImage("ux0:/data/randomhentai/randomhentai.jpg")
 		System.deleteFile("ux0:/data/randomhentai/randomhentai.jpg")
 		width = Graphics.getImageWidth(img)
@@ -138,19 +138,9 @@ end
 if not System.doesDirExist("ux0:/data/randomhentai/saved") then
 	System.createDirectory("ux0:/data/randomhentai/saved")
 end
--- Check if post.json exists (still may fail to get file)
-if not System.doesFileExist("ux0:/data/randomhentai/post.json") then
-	updateJson()
-end
--- Read and decode post.json if it exists
-if System.doesFileExist("ux0:/data/randomhentai/post.json") then
-	local file = System.openFile("ux0:/data/randomhentai/post.json", FREAD)
-	local size = System.sizeFile(file)
-	local jsonEncoded = System.readFile(file, size)	-- Encoded JSON file data
-	jsonDecoded = json.decode(jsonEncoded)			-- Decoded JSON to table
-	System.closeFile(file)
-	getHentai()
-end
+
+getHentai()
+
 -- Main loop
 while true do
 	-- Local init values
@@ -183,11 +173,6 @@ while true do
 			response, message, status = saveImage()
 		end
 		buttonDown = true
-	elseif Controls.check(pad, SCE_CTRL_SELECT) then
-		if not buttonDown then
-			response, message = updateJson()
-		end
-		buttonDown = true
 	else
 		buttonDown = false
 	end
@@ -210,8 +195,9 @@ while true do
 	Screen.clear()
 	if not Network.isWifiEnabled() then
 		Graphics.debugPrint(5, 220, "Please enable WiFi.", Color.new(255,255,255))
-	end
-	if img == nil then
+	elseif not jsonValid then 
+		Graphics.debugPrint(5, 220, "Error: Site may be blocked in your country", Color.new(255,255,255))
+	elseif img == nil then
 		Graphics.debugPrint(5, 220, "Please enable WiFi.", Color.new(255,255,255))
 	else
 		if height > width then

@@ -1,33 +1,33 @@
--- Initialize Network
+-- Initialize network
 Network.init()
 
--- Load JSON Parser
+-- Load JSON parser
 local json = dofile("ux0:/app/RAND00001/deps/lua/json.lua")
--- Load Fonts and Set Font Size
+-- Load font and set font size
 local fnt0 = Font.load("ux0:/app/RAND00001/deps/font/mvboli.ttf")
 Font.setPixelSizes(fnt0, 40)
--- Set Math.random Seed
+-- Set Math.random seed
 local h,m,s = System.getTime()
 math.randomseed((h * m * s) + h + m + s)
--- Define Colors
+-- Define colors
 local white, translucentBlack = Color.new(255,255,255), Color.new(0,0,0,160)
--- Init Values
-local currentId = nil		-- ID of the Currently Loaded Image, used to saving Images
-local autoNext = 0			-- Autonext Variable
-local seconds = 5			-- Delay in Seconds
-local response = nil		-- Response of Function ID (For Main Loop)
-local message = nil			-- Callback Message (For Main Loop)
-local status = nil			-- Callback Status	(For Main Loop)
-local tmr = Timer.new()		-- Set Timer for Autonext
-Timer.pause(tmr)			-- Pause Timer at 0 (Would run otherwise)
-local tmr2 = Timer.new()	-- Set Timer for Delays in Main Loop
-Timer.pause(tmr2)			-- Pause Timer at 0
+-- Init values
+local currentId = nil		-- ID of the currently loaded image, used when saving images
+local autoNext = 0			-- Auto next variable
+local seconds = 5			-- Delay in seconds
+local response = nil		-- Response of function ID (used in main loop)
+local message = nil			-- Callback Message (used in main loop)
+local status = nil			-- Callback Status	(used in main loop)
+local tmr = Timer.new()		-- Set timer for auto next
+Timer.pause(tmr)			-- Pause timer at 0 (would run otherwise)
+local tmr2 = Timer.new()	-- Set timer for delays in main loop
+Timer.pause(tmr2)			-- Pause timer at 0
 local buttonDown = false	-- Ensures no input lag and no unpredicted calls to functions every loop
-local menu = false			-- If Menu is open
+local menu = false			-- If menu is open
 
 -- Functions
 
--- Increases Autonext Delay
+-- Increases auto next delay
 function timerIncrease()
 	local id = 1
 	if menu then
@@ -37,7 +37,7 @@ function timerIncrease()
 	end
 	return id
 end
--- Decreases Autonext Delay
+-- Decreases auto next delay
 function timerDecrease()
 	local id = 2
 	if menu then
@@ -47,7 +47,7 @@ function timerDecrease()
 	end
 	return id
 end
--- Toggles Autonext
+-- Toggles auto next
 function toggleAutoNext()
 	local id = 3
 	if menu then
@@ -55,7 +55,7 @@ function toggleAutoNext()
 			if not Timer.isPlaying(tmr) then
 				Timer.resume(tmr)
 			end
-			Timer.setTime(tmr, seconds * 1000) -- Set Time in Milliseconds
+			Timer.setTime(tmr, seconds * 1000) -- Set time in milliseconds
 			autoNext = 1
 		else
 			if Timer.isPlaying(tmr) then
@@ -66,7 +66,7 @@ function toggleAutoNext()
 	end
 	return id
 end
--- Saves Image By ID
+-- Saves image with the ID as name
 function saveImage()
 	local id = 4
 	if System.doesFileExist("ux0:/data/randomhentai/saved/" .. currentId .. ".jpg") then
@@ -80,7 +80,7 @@ function saveImage()
 		return id, "Failed to save", 2
 	end
 end
--- Updates JSON File with Sources to Pictures
+-- Updates JSON file
 function updateJson()
 	local id = 5
 	if Timer.isPlaying(tmr) then
@@ -92,7 +92,7 @@ function updateJson()
 	end
 	return id, "Failed"
 end
--- Gets and Loads Photos from Decoded JSON Data
+-- Gets and loads pictures from decoded JSON
 function getHentai()
 	if Network.isWifiEnabled() then
 		if img ~= nil then
@@ -114,40 +114,40 @@ function getHentai()
 		drawWidth = 480 - (width * 544 / height / 2)
 		drawHeight = 272 - (height * 960 / width / 2)
 		if (autoNext == 1) then 
-			Timer.setTime(tmr, seconds * 1000) -- Set Time in Seconds
+			Timer.setTime(tmr, seconds * 1000) -- Set time in seconds
 		end
 	end
 end
 
--- Check that the Random Henati Directory Exists
+-- Check if ux0:/data/randomhentai exists
 if not System.doesDirExist("ux0:/data/randomhentai") then
 	System.createDirectory("ux0:/data/randomhentai")
 end
--- Check that the Saved Directory Exists
+-- Check if saved folder exists
 if not System.doesDirExist("ux0:/data/randomhentai/saved") then
 	System.createDirectory("ux0:/data/randomhentai/saved")
 end
--- Check that the post.json File Exists (Still may fail to get file)
+-- Check if post.json exists (still may fail to get file)
 if not System.doesFileExist("ux0:/data/randomhentai/post.json") then
 	updateJson()
 end
--- Read and Decode post.json if File Exists
+-- Read and decode post.json if it exists
 if System.doesFileExist("ux0:/data/randomhentai/post.json") then
 	local file = System.openFile("ux0:/data/randomhentai/post.json", FREAD)
 	local size = System.sizeFile(file)
-	local jsonEncoded = System.readFile(file, size)	-- Encoded JSON File Data
-	jsonDecoded = json.decode(jsonEncoded)			-- Decoded JSON to Table
+	local jsonEncoded = System.readFile(file, size)	-- Encoded JSON file data
+	jsonDecoded = json.decode(jsonEncoded)			-- Decoded JSON to table
 	System.closeFile(file)
 	getHentai()
 end
--- Main Loop
+-- Main loop
 while true do
-	-- local Init Values
-	local time = Timer.getTime(tmr)			-- Autonext Timer Value
-	local timeSec = math.floor(-time / 1000) + 1		-- Autonext Timer Value in Seconds for User
-	local pad = Controls.read()
-	local delay = Timer.getTime(tmr2)		-- Timer Used for Informational Display Delays
-	local delaySec = 4000					-- Value used for the delay timer
+	-- Local init values
+	local time = Timer.getTime(tmr)			            -- Auto next timer value
+	local timeSec = math.floor(-time / 1000) + 1		-- Auto next timer value in seconds for user
+	local pad = Controls.read()                         -- Reading controls
+	local delay = Timer.getTime(tmr2)		            -- Timer used for informational display delays
+	local delaySec = 4000					            -- Value used for the delay timer
 
 	-- Controls
 	if Controls.check(pad, SCE_CTRL_CROSS) or Controls.check(pad, SCE_CTRL_DOWN) or (autoNext == 1 and time > 0) then
@@ -181,20 +181,20 @@ while true do
 		buttonDown = false
 	end
 
-	-- "Menu" Delay
-	if buttonDown then		-- Button was Pressed. Show Information
+	-- "Menu" delay
+	if buttonDown then		-- Button was pressed, show information
 		if Timer.isPlaying(tmr2) then
 			Timer.pause(tmr2)
 		end
 		Timer.resume(tmr2)
-		Timer.setTime(tmr2, delaySec)	-- Set Delay in Milliseconds
-	else					-- Handle the Informational Display Delay Timer
+		Timer.setTime(tmr2, delaySec)	-- Set delay in milliseconds
+	else					-- Handle the informational display delay timer
 		if delay > 0 then
 			Timer.pause(tmr2)
 		end
 	end
 
-	-- Start Drawing
+	-- Start drawing
 	Graphics.initBlend()
 	Screen.clear()
 	if not Network.isWifiEnabled() then
@@ -211,8 +211,8 @@ while true do
 	end
 
 	-- "Menu"
-	if delay < 0 then			-- Informational Display Delay Timer is set. Print Info by Function ID
-		menu = true				-- Set Menu Visibility to False
+	if delay < 0 then			-- Informational display delay dimer is set, print info by function ID
+		menu = true				-- Set menu visibility to false
 		if response == 1 or response == 2 then 													-- timerIncrease()/timerDecrease()
 			Graphics.fillRect(15, 236, 30, 80, translucentBlack)
 			Font.print(fnt0, 20, 30, string.format("Delay: %02ds", seconds), white)
@@ -239,9 +239,9 @@ while true do
 			Font.print(fnt0, 20, 30, message, white)
 		end
 	else
-		menu = false		-- Set Menu Visibility to False
+		menu = false		-- Set menu visibility to false
 	end
-	-- Finish Drawing
+	-- Finish drawing
 	Graphics.termBlend()
 	Screen.flip()
 	Screen.waitVblankStart()

@@ -94,17 +94,26 @@ function updateJson()
 end
 -- Gets and loads pictures from decoded JSON
 function getHentai()
+	::gethentai::
 	if Network.isWifiEnabled() then
 		if img ~= nil then
 			Graphics.freeImage(img)
 			img = nil
 		end
 		rand = math.random(#jsonDecoded)
-		url = jsonDecoded[rand]["jpeg_url"]
+		url = jsonDecoded[rand]["sample_url"]
+		fileExt = string.lower(string.sub(url, -4, -1))
+		if fileExt ~= "jpeg" and fileExt ~= ".jpg" then
+			goto gethentai
+		end
 		currentId = jsonDecoded[rand]["id"]
 		Network.downloadFile(url, "ux0:/data/randomhentai/randomhentai.jpg")
 		local file = System.openFile("ux0:/data/randomhentai/randomhentai.jpg", FREAD)
 		size = System.sizeFile(file)
+		if size == 0 then
+			System.closeFile(file)
+			goto gethentai
+		end
 		image = System.readFile(file, size)
 		System.closeFile(file)
 		img = Graphics.loadImage("ux0:/data/randomhentai/randomhentai.jpg")
@@ -116,6 +125,8 @@ function getHentai()
 		if (autoNext == 1) then 
 			Timer.setTime(tmr, seconds * 1000) -- Set time in seconds
 		end
+	else
+		img = nil
 	end
 end
 

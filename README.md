@@ -7,8 +7,6 @@ That's really it. Do I need to say any more?
 
 Source updated from the original with extra features.
 
-Still uses [Rinnegatamante's LPP-VITA](https://github.com/Rinnegatamante/lpp-vita).
-
 Uses [Konachan](http://konachan.com) as a source.
 
 ## Controls
